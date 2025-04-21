@@ -1,0 +1,89 @@
+body {
+    height: 100vh;
+
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    grid-template-rows: 60px 1fr 50px;
+    grid-template-areas:
+        "side header"
+        "side main";
+}
+
+.header {
+    background-color: #1c1f23;
+
+    grid-area: header;
+}
+
+.sidebar {
+    background-color: #1c1f23;
+    padding: 20px;
+    grid-area: side;
+}
+
+.main {
+    background-color: #1c1f23;
+    grid-area: main;
+
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+        "c1 c2"
+        "c3 c4";
+    row-gap: 10px;
+    column-gap: 10px;
+}
+
+.card {
+    background-color: #252a30;
+    border-radius: 10px;
+}
+
+.card:nth-child(1) {
+    grid-area: c1;
+}
+
+.card:nth-child(2) {
+    grid-area: c2;
+}
+
+.card:nth-child(3) {
+    grid-area: c3;
+}
+
+.card:nth-child(4) {
+    grid-area: c4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+@media (max-width: 925px) {
+    .main {
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(4, 200px);
+        grid-template-areas: initial;
+    }
+
+    .card {
+        grid-area: initial !important;
+    }
+}
+
+.navbar {
+    color: black;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: flex-start;
+    gap: 1em;
+}
+
+
+.navbar .form-control {
+    padding: .75rem 1rem;
+}
