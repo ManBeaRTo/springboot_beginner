@@ -87,7 +87,7 @@
 						</thead>
 						<tbody>
 							<tr th:each="pokemon, iterStat : ${pokemonList}"> 
-								<td th:text="${iterStat.count}"></td> 
+								<td th:text="${currentPage * pageSize + iterStat.count}"></td> 
 								<td th:text="${pokemon.name}"></td>
 								<td th:text="${pokemon.type}"></td>
 								<td th:text="${pokemon.combat_power}"></td>
@@ -99,6 +99,34 @@
 					</table>
 				</div>
 			</div>
+		</div>
+
+		<!-- Paginaiton controls -->
+		<div class="d-flex justify-content-center mt-3">
+			<nav aria-label="Pokemon pagination" th:if="${totalPages > 0}">
+				<ul class="pagination">
+					<!-- Previous button -->
+					<li class="page-item" th:class="${currentPage == 0} ? 'page-item disabled' : 'page-item'">
+						<a class="page-link" th:href="@{/api/pokemon-table(page=${currentPage - 1})}" aria-label="Previous">
+							<span aria-hidden="true">&laquo;</span>
+						</a>
+					</li>
+					
+					<!-- Page numbers -->
+					<li class="page-item" th:each="pageNumber : ${#numbers.sequence(0, totalPages - 1)}"
+						th:class="${pageNumber == currentPage} ? 'page-item active' : 'page-item'">
+						<a class="page-link" th:href="@{/api/pokemon-table(page=${pageNumber})}" 
+						   th:text="${pageNumber + 1}"></a>
+					</li>
+					
+					<!-- Next button -->
+					<li class="page-item" th:class="${currentPage == totalPages - 1} ? 'page-item disabled' : 'page-item'">
+						<a class="page-link" th:href="@{/api/pokemon-table(page=${currentPage + 1})}" aria-label="Next">
+							<span aria-hidden="true">&raquo;</span>
+						</a>
+					</li>
+				</ul>
+			</nav>
 		</div>
 	</main>
 </body>
