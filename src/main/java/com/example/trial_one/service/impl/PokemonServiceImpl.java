@@ -1,6 +1,8 @@
 package com.example.trial_one.service.impl;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +30,7 @@ public class PokemonServiceImpl implements PokemonService{
 	@Override
 	public PokemonDto createPokemon(PokemonDto pokemonDto)
 	{
+		
 		Pokemon pokemon = new Pokemon();
 		pokemon.setName(pokemonDto.getName());
 		pokemon.setType(pokemonDto.getType());
@@ -79,6 +82,7 @@ public class PokemonServiceImpl implements PokemonService{
 		pokemonDto.setId(pokemon.getId());
 		pokemonDto.setName(pokemon.getName());
 		pokemonDto.setType(pokemon.getType());
+		pokemonDto.setCombat_power(pokemon.getCombat_power());
 		return pokemonDto;
 	}
 	
@@ -87,6 +91,7 @@ public class PokemonServiceImpl implements PokemonService{
 		Pokemon pokemon = new Pokemon();
 		pokemon.setName(pokemonDto.getName());
 		pokemon.setType(pokemonDto.getType());
+		pokemon.setCombat_power(pokemonDto.getCombat_power());
 		return pokemon;
 	}
 
@@ -100,5 +105,24 @@ public class PokemonServiceImpl implements PokemonService{
 	public void deletePokemonId(int id) {
 		Pokemon pokemon = pokemonRepository.findById(id).orElseThrow(() -> new PokemonNotFoundException("Pokemon could not be found"));
 		pokemonRepository.delete(pokemon);
+	}
+	
+	@Override
+	public List<PokemonDto> getAllPokemon()
+	{
+		List<Pokemon> pokemons = pokemonRepository.findAll();
+		return pokemonRepository.findAll().stream().map(this::mapToDto).collect(Collectors.toList());
+	}
+
+	@Override
+	public Map<String, Object> getPokemonData() 
+	{
+		Map<String, Object> result = new HashMap<>();
+		List<PokemonDto> allPokemon = getAllPokemon();
+		
+		
+		
+		result.put("all", allPokemon.size());
+		return result;
 	}
 }

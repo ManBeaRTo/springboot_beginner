@@ -9,10 +9,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class PokemonDto {
-	
+public class CleatDto {
+
 	private int id;
 	private String name;
-	private String type;
-	private int combat_power;
+	private String brand;
 }
