@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model; 
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import com.example.trial_one.dto.PokemonDto;
 import com.example.trial_one.dto.PokemonResponse;
@@ -34,7 +36,7 @@ public class PokemonController {
 	public PokemonController(PokemonService pokemonService, GlobalExceptionHandler globalExceptionHandler) {
 		super();
 		this.pokemonService = pokemonService;
-		this.globalExceptionHandler = globalExceptionHandler;
+this.globalExceptionHandler = globalExceptionHandler;
 	}
 
 	@GetMapping("pokemon")
@@ -73,34 +75,44 @@ public class PokemonController {
 	}
 
 	@GetMapping("pokemon-table")
-	public String showTable(Model model)
-	{
-		List<PokemonDto> pokemonDtoList=  pokemonService.getAllPokemon();
-
-		//Tot no of Pokemons
-		int totalPokemons = pokemonDtoList.size();
-
-		// strongest pokemon
-		String strongestPokemonName = pokemonDtoList.stream()
-		.max((p1, p2) -> Integer.compare(p1.getCombat_power(), p2.getCombat_power()))
-		.map(PokemonDto::getName)
-		.orElse("N/A");
-
-		// Weakest Pokemon
-		String weakestPokemonName = pokemonDtoList.stream()
-		.min((p1, p2) -> Integer.compare(p1.getCombat_power(), p2.getCombat_power()))
-		.map(PokemonDto::getName)
-		.orElse("N/A");
-
-		model.addAttribute("pokemonList",pokemonDtoList);
-		model.addAttribute("totalPokemons", totalPokemons);
+	public String showTable(
+	    Model model,
+	    @RequestParam(defaultValue = "0") int page,
+	    @RequestParam(defaultValue = "8")int size) {
+	    
+	    // Get paginated results
+	    Pageable pageable = PageRequest.of(page, size);
+	    PokemonResponse pokemonResponse = pokemonService.getAllPokemon(page, size);
+	    List<PokemonDto> pokemonDtoList = pokemonResponse.getContent();
+	    
+	    // Calculate stats
+	    int totalPokemons = (int) pokemonResponse.getTotalElements();
+	    
+	    // Strongest pokemon
+	    String strongestPokemonName = pokemonService.getAllPokemon().stream()
+	        .max((p1, p2) -> Integer.compare(p1.getCombat_power(), p2.getCombat_power()))
+	        .map(PokemonDto::getName)
+	        .orElse("N/A");
+	    
+	    // Weakest Pokemon
+	    String weakestPokemonName = pokemonService.getAllPokemon().stream()
+	        .min((p1, p2) -> Integer.compare(p1.getCombat_power(), p2.getCombat_power()))
+	        .map(PokemonDto::getName)
+	        .orElse("N/A");
+	    
+	    // Add pagination attributes
+	    model.addAttribute("pokemonList", pokemonDtoList);
+	    model.addAttribute("currentPage", page);
+	    model.addAttribute("totalPages", pokemonResponse.getTotalPages());
+	    model.addAttribute("totalItems", pokemonResponse.getTotalElements());
+		model.addAttribute("pageSize", size);
+	    
+	    // Add stats attributes
+				model.addAttribute("totalPokemons", totalPokemons);
 		model.addAttribute("strongestPokemonName", strongestPokemonName);
 		model.addAttribute("weakestPokemonName", weakestPokemonName);
 
-
 		return "pokemon-table";
 	}
-	
-	
 	
 }
