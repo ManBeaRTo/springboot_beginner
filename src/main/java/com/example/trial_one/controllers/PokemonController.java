@@ -71,7 +71,7 @@ this.globalExceptionHandler = globalExceptionHandler;
 	public ResponseEntity<String> deletePokemon(@PathVariable("id") int pokemonId)
 	{
 		pokemonService.deletePokemonId(pokemonId);
-		return new ResponseEntity<>("Pokemon Delete", HttpStatus.OK);
+		return new ResponseEntity<>("Pokemon Deleted", HttpStatus.OK);
 	}
 
 	@GetMapping("pokemon-table")
@@ -113,6 +113,15 @@ this.globalExceptionHandler = globalExceptionHandler;
 		model.addAttribute("weakestPokemonName", weakestPokemonName);
 
 		return "pokemon-table";
+	}
+	
+	@GetMapping("pokemon-view/{id}")
+	public String showView(@PathVariable int id, Model model)
+	{
+		PokemonDto pokemon = pokemonService.getPokemonById(id);
+		model.addAttribute("pokemon", pokemon);
+		
+		return "pokemon-view";
 	}
 	
 }
