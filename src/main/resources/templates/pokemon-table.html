@@ -3,22 +3,28 @@
 
 <head>
 	<title>Pokemon Table</title>
-	
+
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet"
-		integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7"
-		crossorigin="anonymoushead>">
-		
-		<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"rel="stylesheet">
-		
+		integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
+
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+
+	<!-- Bootstrap JS Modal functionality -->
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"
+		integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+		crossorigin="anonymous"></script>
 	<style>
 		.custom-card {
-		            transition: transform 0.2s ease-in-out; /* Smooth transition */
-		        }
+			transition: transform 0.2s ease-in-out;
+			/* Smooth transition */
+		}
 
-		        .custom-card:hover {
-		            transform: scale(1.05); /* Increase size on hover */
-		            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);  /* Add a shadow for better effect */
-		        }
+		.custom-card:hover {
+			transform: scale(1.05);
+			/* Increase size on hover */
+			box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+			/* Add a shadow for better effect */
+		}
 	</style>
 </head>
 
@@ -30,11 +36,11 @@
 		<div class="row text-center">
 			<div class="col-md-4">
 				<div class="card shadow-sm border-primary custom-card">
-						<h6 class="card-title text-uppercase bg-primary text-warning p-2 p fw-bold rounded-top">
-							<i class="fa-solid fa-layer-group"></i> <span>
-								No. of Pokemons
-							</span>
-						</h6>
+					<h6 class="card-title text-uppercase bg-primary text-warning p-2 p fw-bold rounded-top">
+						<i class="fa-solid fa-layer-group"></i> <span>
+							No. of Pokemons
+						</span>
+					</h6>
 					<div class="card-body">
 						<h2 class="text-warning fw-bold" th:text="${totalPokemons}"></h2>
 					</div>
@@ -42,9 +48,9 @@
 			</div>
 			<div class="col-md-4">
 				<div class="card shadow-sm border-primary custom-card">
-						<h6 class="card-title text-uppercase bg-primary text-warning p-2 p fw-bold rounded-top">
-							<i class="fa-solid fa-skull-crossbones"></i> Strongest Pokemon
-						</h6>
+					<h6 class="card-title text-uppercase bg-primary text-warning p-2 p fw-bold rounded-top">
+						<i class="fa-solid fa-skull-crossbones"></i> Strongest Pokemon
+					</h6>
 					<div class="card-body">
 						<h2 class="text-warning fw-bold me-1" th:text="${strongestPokemonName}"></h2>
 					</div>
@@ -52,54 +58,55 @@
 			</div>
 			<div class="col-md-4">
 				<div class="card shadow-sm border-primary custom-card">
-						<h6 class="card-title text-uppercase bg-primary text-warning p-2 p fw-bold rounded-top">
-							<i class="fa-solid fa-face-dizzy"></i> Weakest Pokemon
-						</h6>
+					<h6 class="card-title text-uppercase bg-primary text-warning p-2 p fw-bold rounded-top">
+						<i class="fa-solid fa-face-dizzy"></i> Weakest Pokemon
+					</h6>
 					<div class="card-body">
 						<h2 class="text-warning fw-bold" th:text="${weakestPokemonName}"></h2>
 					</div>
 				</div>
 			</div>
 		</div>
-		
+
 		<div class="d-flex justify-content-center align-items-center">
 			<img src="/ball.png" alt="Pokeball" width="6%" class=" me-4">
 			<img src="/pokemon_logo.png" alt="Pokemon Logo" width="30%" class="">
 			<img src="/pikachu.png" alt="Pikachu" width="10%">
 		</div>
 
-		<!-- Vehicle Request Table -->
+		<!-- Pokemon Table -->
 		<div class="card shadow-sm">
-			<div class="card-header bg-light">
-				<h3 class="mb-0 text-center">Pokemon List</h3>
+			<div class="card-header d-flex justify-content-between align-items-center">
+				<h3 class="mb-0 text-center flex-grow-1">Pokemon List</h3>
+				<a th:href="@{/add-pokemon-form}" class="btn btn-primary ms-2"><i class="fa-solid fa-circle-plus"></i> Add Pokemon</a>
 			</div>
 			<div class="card-body p-0">
 				<div class="table-responsive">
 					<table class="table table-striped table-hover align-middle mb-0">
-						<thead class="table-dark">
+						<thead>
 							<tr>
 								<th>#</th>
 								<th>Name</th>
 								<th>Type <i class="fa-solid fa-fire-flame-curved"></i></th>
 								<th>Combat Power</th>
 								<th>Operations</th>
-								
+
 							</tr>
 						</thead>
 						<tbody>
-							<tr th:each="pokemon, iterStat : ${pokemonList}"> 
-								<td th:text="${currentPage * pageSize + iterStat.count}"></td> 
+							<tr th:each="pokemon, iterStat : ${pokemonList}">
+								<td th:text="${currentPage * pageSize + iterStat.count}"></td>
 								<td th:text="${pokemon.name}"></td>
 								<td th:text="${pokemon.type}"></td>
 								<td th:text="${pokemon.combat_power}"></td>
 								<td>
-									<a th:href="@{/api/pokemon-view/{id}(id=${pokemon.id})}" class="btn btn-warning">
+									<a th:href="@{/api/pokemon-view/{id}(id=${pokemon.id})}" class="btn btn-primary">
 										<i class="fa-solid fa-eye"></i>
 									</a>
-									<a class="btn btn-primary">
+									<a th:href="@{/api/pokemon/{id}/edit(id=${pokemon.id})}" class="btn btn-primary">
 										<i class="fa-solid fa-pen-to-square"></i>
 									</a>
-									<a th:href="@{/api/pokemon/{id}(id=${pokemon.id})/delete}" class="btn btn-danger">
+									<a th:href="@{/api/pokemon/{id}/confirm-delete(id=${pokemon.id})}" class="btn btn-danger">
 										<i class="fa-solid fa-trash"></i>
 									</a>
 								</td>
@@ -113,26 +120,28 @@
 			</div>
 		</div>
 
-		<!-- Paginaiton controls -->
+		<!-- Pagination controls -->
 		<div class="d-flex justify-content-center mt-3">
 			<nav aria-label="Pokemon pagination" th:if="${totalPages > 0}">
 				<ul class="pagination">
 					<!-- Previous button -->
 					<li class="page-item" th:class="${currentPage == 0} ? 'page-item disabled' : 'page-item'">
-						<a class="page-link" th:href="@{/api/pokemon-table(page=${currentPage - 1})}" aria-label="Previous">
+						<a class="page-link" th:href="@{/api/pokemon-table(page=${currentPage - 1})}"
+							aria-label="Previous">
 							<span aria-hidden="true">&laquo;</span>
 						</a>
 					</li>
-					
+
 					<!-- Page numbers -->
 					<li class="page-item" th:each="pageNumber : ${#numbers.sequence(0, totalPages - 1)}"
 						th:class="${pageNumber == currentPage} ? 'page-item active' : 'page-item'">
-						<a class="page-link" th:href="@{/api/pokemon-table(page=${pageNumber})}" 
-						   th:text="${pageNumber + 1}"></a>
+						<a class="page-link" th:href="@{/api/pokemon-table(page=${pageNumber})}"
+							th:text="${pageNumber + 1}"></a>
 					</li>
-					
+
 					<!-- Next button -->
-					<li class="page-item" th:class="${currentPage == totalPages - 1} ? 'page-item disabled' : 'page-item'">
+					<li class="page-item"
+						th:class="${currentPage == totalPages - 1} ? 'page-item disabled' : 'page-item'">
 						<a class="page-link" th:href="@{/api/pokemon-table(page=${currentPage + 1})}" aria-label="Next">
 							<span aria-hidden="true">&raquo;</span>
 						</a>
@@ -140,7 +149,12 @@
 				</ul>
 			</nav>
 		</div>
+		<div class="d-flex justify-content-center">
+		
+		</div>
 	</main>
+
+
 </body>
 
 <script src="/js/project.js"></script>

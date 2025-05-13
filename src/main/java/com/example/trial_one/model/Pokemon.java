@@ -29,6 +29,7 @@ public class Pokemon
 	private String name;
 	private String type;
 	private int combat_power;
+	private String picturePath;
 	
 	@OneToMany(mappedBy = "pokemon", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Review> reviews = new ArrayList<Review>();

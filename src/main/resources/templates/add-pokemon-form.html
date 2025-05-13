@@ -18,7 +18,7 @@
 <body>
     <div class="container mt-5">
         <h1 class="text-center">Add Pokemon</h1>
-        <form action="/add-pokemon" method="post">
+        <form action="/add-pokemon" method="post" enctype="multipart/form-data">
             <div class="form-group col-6 mx-auto py-4">
                 <label for="name">Name:</label>
                 <input type="text" class="form-control py-1" id="name" name="name" placeholder="Charizard" required>
@@ -31,8 +31,13 @@
                 <label for="combat_power">Combat Power:</label>
                 <input type="number" class="form-control" id="combat_power" name="combat_power" placeholder="450" required>
             </div><br>
+            <div class="form-group col-6 mx-auto">
+                <label for="picture">Picture:</label>
+                <input type="file" class="form-control" id="picture" name="picture" accept=".jpg,.jpeg,.png" >
+            </div><br>
             <div class="d-flex justify-content-center">
-                <button type="submit" class="btn btn-primary" id="addPokemonButton">Add Pokemon</button>
+                <button type="submit" class="btn btn-primary me-2" id="addPokemonButton">Add Pokemon</button>
+                <a href="/api/pokemon-table" class="btn btn-primary">View Table</a>
             </div>   <br>
             <img id="pokemonIcon" class ="icon-center mx-auto d-block" src="close.png" alt="Pokeball Icon" width="60" height="60">
         </form>

@@ -11,7 +11,7 @@
 </head>
 
 <body>
-<main class="main d-flex align-items-center justify-content-center">
+<main class="main d-flex align-items-center justify-content-center" style="min-height: 100vh;">
     <div class="card p-4 mx-auto">
         <div class="card-header">
             <h3 class="mb-0">Pokemon View</h3>
@@ -21,9 +21,13 @@
                 <div><strong>ID:</strong> <span th:text="${pokemon.id}"></span></div>
                 <div><strong>Name:</strong> <span th:text="${pokemon.name}"></span></div>
                 <div><strong>Type:</strong> <span th:text="${pokemon.type}"></span></div>
-                <div><strong>Combat Power:</strong> <span th:text="${pokemon.combat_power}"></span></div><br>
-                <div class="item item-1 fs-6">
-                    <i class="fa-solid fa-hand-point-left"></i><a th:href="@{/api/pokemon-table}" class="text-decoration-none">  Go Back</a>
+                <div><strong>Combat Power:</strong> <span th:text="${pokemon.combat_power}"></span></div>
+                <div class="text-center mb-3">
+                    <img th:src="@{'/uploads/' + ${pokemon.picturePath}}" alt="Pokemon Image" class="img-fluid rounded" style="max-height: 200px;">
+                </div></div>
+                <br>
+                <div class="item item-1 fs-6  btn btn-primary">
+                    <i class="fa-solid fa-hand-point-left me-2"></i><a th:href="@{/api/pokemon-table}" class="text-light">Go Back</a>
                 </div>
             </div>
         </div>

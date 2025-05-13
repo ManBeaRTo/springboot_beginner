@@ -7,4 +7,5 @@ public class NewPokemonDto {
 	private String name;
 	private String type;
 	private int combat_power;
+	private String picturePath;
 }
