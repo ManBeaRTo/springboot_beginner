@@ -30,6 +30,7 @@ public class Pokemon
 	private String type;
 	private int combat_power;
 	private String picturePath;
+	// entry date, remark, status
 	
 	@OneToMany(mappedBy = "pokemon", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Review> reviews = new ArrayList<Review>();

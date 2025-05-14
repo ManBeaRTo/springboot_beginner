@@ -1,9 +1,6 @@
 package com.example.trial_one.controllers;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -16,6 +13,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.trial_one.dto.NewPokemonDto;
 import com.example.trial_one.service.NewPokemonService;
+import com.example.trial_one.model.Pokemon;
+import com.example.trial_one.utils.FileCheckUtils;
 
 @Controller
 public class NewPokemonController{
@@ -33,26 +32,42 @@ public class NewPokemonController{
     }
     
     @PostMapping("/add-pokemon")
-    public String addPokemon(NewPokemonDto pokemonDto, @RequestParam("picture") MultipartFile picture, RedirectAttributes redirectAttributes) {
+    public String addPokemon(NewPokemonDto pokemonDto, @RequestParam("picture") MultipartFile picture, 
+                             RedirectAttributes redirectAttributes) {
         try {
-            pokemonService.newCreatePokemon(pokemonDto);
-            redirectAttributes.addFlashAttribute("message", "Pokemon added successfully!");
-            
-            // Only proceed with image upload if Pokemon was added successfully
+            // Verify file type using the utility class
             if (!picture.isEmpty()) {
-                Path uploadPath = Paths.get(UPLOAD_DIR);
-                if (!Files.exists(uploadPath)) {
-                    Files.createDirectories(uploadPath);
+                if (!FileCheckUtils.isImageFile(picture)) {
+                    redirectAttributes.addFlashAttribute("warning_message", 
+                        "Invalid file type. Only JPEG, JPG, and PNG files are allowed.");
+                    return "redirect:/add-pokemon-form";
                 }
-                String fileName = picture.getOriginalFilename();
-                File destinationFile = new File(UPLOAD_DIR + fileName);
-                picture.transferTo(destinationFile);
-                pokemonDto.setPicturePath(fileName);
+                
+                // For extra security, also check file signature
+                try {
+                    if (!FileCheckUtils.isValidImageFile(picture)) {
+                        redirectAttributes.addFlashAttribute("warning_message", 
+                            "Invalid image content. The file does not appear to be a valid image.");
+                        return "redirect:/add-pokemon-form";
+                    }
+                } catch (IOException e) {
+                    redirectAttributes.addFlashAttribute("warning_message", 
+                        "Could not verify file contents: " + e.getMessage());
+                    return "redirect:/add-pokemon-form";
+                }
             }
+            
+            Pokemon savedPokemon = pokemonService.createPokemonWithPicture(pokemonDto, picture);
+            
+            redirectAttributes.addFlashAttribute("message", "Pokemon added successfully!");
+            return "redirect:/success";
+        } catch (IOException e) {
+            redirectAttributes.addFlashAttribute("pictureMessage", 
+                "Pokemon saved, but picture upload failed: " + e.getMessage());
             return "redirect:/success";
         } catch (Exception e) {
             e.printStackTrace();
-            redirectAttributes.addFlashAttribute("message", "Failed to add Pokemon.");
+            redirectAttributes.addFlashAttribute("warning_message", "Failed to add Pokemon: " + e.getMessage());
             return "redirect:/add-pokemon-form";
         }
     }

@@ -31,36 +31,58 @@ public class PokemonServiceImpl implements PokemonService {
 	private static final String UPLOAD_DIR = "/home/rambo/Workspace/spring/trial_one/uploads/";
 	
 	@Override
-    public PokemonDto updatePokemonWithPicture(int id, PokemonDto pokemonDto, MultipartFile picture, RedirectAttributes redirectAttributes) {
-        // Handle the file upload
-        if (!picture.isEmpty()) {
-            try {
-                Path uploadPath = Paths.get(UPLOAD_DIR);
-                String fileName = picture.getOriginalFilename();
-                File destinationFile = new File(UPLOAD_DIR + fileName);
-
-                // check if fileName exists in destinationFile
-                if (Files.exists(destinationFile.toPath())) {
-                    redirectAttributes.addFlashAttribute("message", "File already exists.");
-                    return null;
-                }
-
-                if (!Files.exists(uploadPath)) {
-                    Files.createDirectories(uploadPath);
-                }
-
-                picture.transferTo(destinationFile);
-                pokemonDto.setPicturePath(fileName);
-            } catch (Exception e) {
-                e.printStackTrace();
-                redirectAttributes.addFlashAttribute("message", "Could not upload file.");
-                return null;
-            }
-        }
-        
-        // Call the existing update method to update the Pokemon
-        return updatePokemon(pokemonDto, id);
-    }
+	public PokemonDto updatePokemonWithPicture(int id, PokemonDto pokemonDto, MultipartFile picture, RedirectAttributes redirectAttributes) {
+	    // Get the current Pokemon to find its existing picture path
+	    PokemonDto existingPokemon = getPokemonById(id);
+	    String oldPicturePath = existingPokemon.getPicturePath();
+	    
+	    // First update the Pokemon details
+	    PokemonDto updatedPokemon = updatePokemon(pokemonDto, id);
+	    
+	    // Only process picture if a new one was uploaded
+	    if (!picture.isEmpty()) {
+	        try {
+	            Path uploadPath = Paths.get(UPLOAD_DIR);
+	            if (!Files.exists(uploadPath)) {
+	                Files.createDirectories(uploadPath);
+	            }
+	            
+	            String fileName = picture.getOriginalFilename();
+	            
+	            // Create unique filename with pokemon details
+	            String extension = fileName.contains(".") ? 
+	                fileName.substring(fileName.lastIndexOf('.')) : "";
+	            String finalFileName = pokemonDto.getName() + "_" + pokemonDto.getCombat_power() + extension;
+	            
+	            File destinationFile = new File(UPLOAD_DIR + finalFileName);
+	            
+	            // Upload the new file
+	            picture.transferTo(destinationFile);
+	            
+	            // Update the picture path in database
+	            updatedPokemon.setPicturePath(finalFileName);
+	            updatedPokemon = updatePokemon(updatedPokemon, id);
+	            
+	            // Delete the old picture file if it exists
+	            if (oldPicturePath != null && !oldPicturePath.isEmpty()) {
+	                File oldFile = new File(UPLOAD_DIR + oldPicturePath);
+	                if (oldFile.exists()) {
+	                    if (oldFile.delete()) {
+	                        System.out.println("Old image file deleted successfully: " + oldPicturePath);
+	                    } else {
+	                        System.err.println("Failed to delete old image file: " + oldPicturePath);
+	                    }
+	                }
+	            }
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	            redirectAttributes.addFlashAttribute("message", "Could not upload file.");
+	            return updatedPokemon;
+	        }
+	    }
+	    
+	    return updatedPokemon;
+	}
 	
 	@Autowired
 	public PokemonServiceImpl(PokemonRepository pokemonRepository) {
@@ -73,6 +95,7 @@ public class PokemonServiceImpl implements PokemonService {
 		Pokemon pokemon = new Pokemon();
 		pokemon.setName(pokemonDto.getName());
 		pokemon.setType(pokemonDto.getType());
+		pokemon.setType(pokemonDto.getPicturePath());
 
 		Pokemon newPokemon = pokemonRepository.save(pokemon);
 
@@ -146,6 +169,20 @@ public class PokemonServiceImpl implements PokemonService {
 	public void deletePokemonId(int id) {
 		Pokemon pokemon = pokemonRepository.findById(id)
 				.orElseThrow(() -> new PokemonNotFoundException("Pokemon could not be found"));
+		
+		// Delete the associated image file if it exists
+		if (pokemon.getPicturePath() != null && !pokemon.getPicturePath().isEmpty()) {
+			try {
+				File imageFile = new File(UPLOAD_DIR + pokemon.getPicturePath());
+				if (imageFile.exists()) {
+					imageFile.delete();
+				}
+			} catch (Exception e) {
+				// Log the error but continue with deletion
+				System.err.println("Error deleting image file: " + e.getMessage());
+			}
+		}
+		
 		pokemonRepository.delete(pokemon);
 	}
 
