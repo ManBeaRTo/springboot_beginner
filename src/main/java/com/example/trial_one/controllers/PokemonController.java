@@ -1,10 +1,7 @@
 package com.example.trial_one.controllers;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -111,18 +108,42 @@ public class PokemonController {
             @RequestParam(defaultValue = "8") int size) {
         Pageable pageable = PageRequest.of(page, size);
         PokemonResponse pokemonResponse = pokemonService.getAllPokemon(page, size);
+        
         List<PokemonDto> pokemonDtoList = pokemonResponse.getContent();
 
         int totalPokemons = (int) pokemonResponse.getTotalElements();
+        
+        // Get strongest Pokemon info
         String strongestPokemonName = pokemonService.getAllPokemon().stream()
-                .max((p1, p2) -> Integer.compare(p1.getCombat_power(), p2.getCombat_power()))
-                .map(PokemonDto::getName)
-                .orElse("N/A");
+            .max((p1, p2) -> Integer.compare(p1.getCombat_power(), p2.getCombat_power()))
+            .map(PokemonDto::getName)
+            .orElse("N/A");
+            
+        String strongestPokemonPicture = pokemonService.getAllPokemon().stream()
+            .max((p1, p2) -> Integer.compare(p1.getCombat_power(), p2.getCombat_power()))
+            .map(PokemonDto::getPicturePath)
+            .orElse("default-image.jpg");
+        
+        // Get weakest Pokemon info
         String weakestPokemonName = pokemonService.getAllPokemon().stream()
-                .min((p1, p2) -> Integer.compare(p1.getCombat_power(), p2.getCombat_power()))
-                .map(PokemonDto::getName)
-                .orElse("N/A");
-
+            .min((p1, p2) -> Integer.compare(p1.getCombat_power(), p2.getCombat_power()))
+            .map(PokemonDto::getName)
+            .orElse("N/A");
+        
+        String weakestPokemonPicture = pokemonService.getAllPokemon().stream()
+            .min((p1, p2) -> Integer.compare(p1.getCombat_power(), p2.getCombat_power()))
+            .map(PokemonDto::getPicturePath)
+            .orElse("default-image.jpg");
+        
+        // Get the latest 9 Pokemon additions sorted by creation time
+        List<PokemonDto> latestAdditions = pokemonService.getAllPokemon().stream()
+            .filter(p -> p.getAuditDetails() != null && p.getAuditDetails().getCreationTime() != null)
+            .sorted((p1, p2) -> p2.getAuditDetails().getCreationTime()
+                    .compareTo(p1.getAuditDetails().getCreationTime()))
+            .limit(9)
+            .collect(Collectors.toList());
+        
+        model.addAttribute("latestAdditions", latestAdditions);
         model.addAttribute("pokemonList", pokemonDtoList);
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", pokemonResponse.getTotalPages());
@@ -131,6 +152,8 @@ public class PokemonController {
         model.addAttribute("totalPokemons", totalPokemons);
         model.addAttribute("strongestPokemonName", strongestPokemonName);
         model.addAttribute("weakestPokemonName", weakestPokemonName);
+        model.addAttribute("weakestPokemonPicture", weakestPokemonPicture);
+        model.addAttribute("strongestPokemonPicture", strongestPokemonPicture);
 
         return "pokemon-table";
     }

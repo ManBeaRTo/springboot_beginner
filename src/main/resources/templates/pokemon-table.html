@@ -42,7 +42,9 @@
 						</span>
 					</h6>
 					<div class="card-body">
-						<h2 class="text-warning fw-bold" th:text="${totalPokemons}"></h2>
+						<img src="/pokedex.png" alt="Pokedex Image" style="max-height: 150px; opacity: 0.7;">
+
+						<h2 class="text-warning fw-bold text-shadow" th:text="${totalPokemons}"></h2>
 					</div>
 				</div>
 			</div>
@@ -52,6 +54,7 @@
 						<i class="fa-solid fa-skull-crossbones"></i> Strongest Pokemon
 					</h6>
 					<div class="card-body">
+						<img th:if="${strongestPokemonPicture != null}" th:src="@{'/uploads/' + ${strongestPokemonPicture}}" alt="Pokemon Image"  style="max-height: 150px;">
 						<h2 class="text-warning fw-bold me-1" th:text="${strongestPokemonName}"></h2>
 					</div>
 				</div>
@@ -62,12 +65,14 @@
 						<i class="fa-solid fa-face-dizzy"></i> Weakest Pokemon
 					</h6>
 					<div class="card-body">
+						<img th:if="${weakestPokemonPicture != null}" th:src="@{'/uploads/' + ${weakestPokemonPicture}}" alt="Pokemon Image"  style="max-height: 150px;">
 						<h2 class="text-warning fw-bold" th:text="${weakestPokemonName}"></h2>
 					</div>
 				</div>
 			</div>
 		</div>
 
+		
 		<div class="d-flex justify-content-center align-items-center">
 			<img src="/ball.png" alt="Pokeball" width="6%" class=" me-4">
 			<img src="/pokemon_logo.png" alt="Pokemon Logo" width="30%" class="">
@@ -78,6 +83,7 @@
 		<div class="card shadow-sm">
 			<div class="card-header d-flex justify-content-between align-items-center">
 				<h3 class="mb-0 text-center flex-grow-1">Pokemon List</h3>
+				<a href="#datatable" class="btn btn-primary ms-2"> Latest Additions</a>
 				<a th:href="@{/add-pokemon-form}" class="btn btn-primary ms-2"><i class="fa-solid fa-circle-plus"></i> Add Pokemon</a>
 			</div>
 			<div class="card-body p-0">
@@ -148,10 +154,56 @@
 					</li>
 				</ul>
 			</nav>
-		</div>
-		<div class="d-flex justify-content-center">
+		</div><br><br><br><br>
 		
+		
+		<!-- 9 Cards in 3x3 Grid -->
+		 <div   id="datatable">
+		<h3 class="title text-uppercase bg-primary text-warning p-2 fw-bold rounded text-center">
+			<span>Latest Additions</span>
+		</h3>
 		</div>
+		<div class="row mt-4 mb-4">
+			<!-- Display latest 9 additions -->
+			<div th:each="pokemon, iterStat : ${latestAdditions}" class="col-md-4 mb-3">
+				<div class="card shadow-sm border-primary custom-card">
+					<h6 class="card-title text-uppercase bg-primary text-warning p-2 fw-bold rounded-top">
+						<span th:text="${pokemon.type + ' Type'}">Type</span>
+					</h6>
+					<div class="card-body">
+						<div class="d-flex justify-content-center align-items-center">
+							<h5><span class="badge bg-primary" th:text="${'CP: ' + pokemon.combat_power}">CP</span></h5>
+						</div>
+						<img th:if="${pokemon.picturePath != null}" 
+							th:src="@{'/uploads/' + ${pokemon.picturePath}}" 
+							th:alt="${pokemon.name}" 
+							style="max-height: 150px; margin: 10px auto; display: block;">
+						<img th:unless="${pokemon.picturePath != null}" 
+							src="/pokeball.png" 
+							th:alt="${pokemon.name}" 
+							style="max-height: 150px; margin: 10px auto; display: block;">
+						<h2 class="text-warning fw-bold text-center" th:text="${pokemon.name}">Pokemon Name</h2>
+					</div>
+				</div>
+			</div>
+			
+			<!-- Fallback if there are fewer than 9 Pokemon -->
+			<div th:if="${latestAdditions.size() < 9}" th:each="i : ${#numbers.sequence(latestAdditions.size(), 8)}" class="col-md-4 mb-3">
+				<div class="card shadow-sm border-primary custom-card">
+					<h6 class="card-title text-uppercase bg-primary text-warning p-2 fw-bold rounded-top">
+						<i class="fa-solid fa-plus"></i> Add New
+					</h6>
+					<div class="card-body text-center">
+						<img src="/pokeball.png" alt="Add Pokemon" style="max-height: 150px; opacity: 0.7;">
+						<h2 class="text-warning fw-bold">Add Pokemon</h2>
+						<a th:href="@{/add-pokemon-form}" class="btn btn-primary mt-2">
+							<i class="fa-solid fa-plus"></i> Add New
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
+
 	</main>
 
 

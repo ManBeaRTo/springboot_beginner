@@ -29,61 +29,61 @@ import java.nio.file.Path;
 public class PokemonServiceImpl implements PokemonService {
 	private PokemonRepository pokemonRepository;
 	private static final String UPLOAD_DIR = "/home/rambo/Workspace/spring/trial_one/uploads/";
-	
+
 	@Override
-	public PokemonDto updatePokemonWithPicture(int id, PokemonDto pokemonDto, MultipartFile picture, RedirectAttributes redirectAttributes) {
-	    // Get the current Pokemon to find its existing picture path
-	    PokemonDto existingPokemon = getPokemonById(id);
-	    String oldPicturePath = existingPokemon.getPicturePath();
-	    
-	    // First update the Pokemon details
-	    PokemonDto updatedPokemon = updatePokemon(pokemonDto, id);
-	    
-	    // Only process picture if a new one was uploaded
-	    if (!picture.isEmpty()) {
-	        try {
-	            Path uploadPath = Paths.get(UPLOAD_DIR);
-	            if (!Files.exists(uploadPath)) {
-	                Files.createDirectories(uploadPath);
-	            }
-	            
-	            String fileName = picture.getOriginalFilename();
-	            
-	            // Create unique filename with pokemon details
-	            String extension = fileName.contains(".") ? 
-	                fileName.substring(fileName.lastIndexOf('.')) : "";
-	            String finalFileName = pokemonDto.getName() + "_" + pokemonDto.getCombat_power() + extension;
-	            
-	            File destinationFile = new File(UPLOAD_DIR + finalFileName);
-	            
-	            // Upload the new file
-	            picture.transferTo(destinationFile);
-	            
-	            // Update the picture path in database
-	            updatedPokemon.setPicturePath(finalFileName);
-	            updatedPokemon = updatePokemon(updatedPokemon, id);
-	            
-	            // Delete the old picture file if it exists
-	            if (oldPicturePath != null && !oldPicturePath.isEmpty()) {
-	                File oldFile = new File(UPLOAD_DIR + oldPicturePath);
-	                if (oldFile.exists()) {
-	                    if (oldFile.delete()) {
-	                        System.out.println("Old image file deleted successfully: " + oldPicturePath);
-	                    } else {
-	                        System.err.println("Failed to delete old image file: " + oldPicturePath);
-	                    }
-	                }
-	            }
-	        } catch (Exception e) {
-	            e.printStackTrace();
-	            redirectAttributes.addFlashAttribute("message", "Could not upload file.");
-	            return updatedPokemon;
-	        }
-	    }
-	    
-	    return updatedPokemon;
+	public PokemonDto updatePokemonWithPicture(int id, PokemonDto pokemonDto, MultipartFile picture,
+			RedirectAttributes redirectAttributes) {
+		// Get the current Pokemon to find its existing picture path
+		PokemonDto existingPokemon = getPokemonById(id);
+		String oldPicturePath = existingPokemon.getPicturePath();
+
+		// First update the Pokemon details
+		PokemonDto updatedPokemon = updatePokemon(pokemonDto, id);
+
+		// Only process picture if a new one was uploaded
+		if (!picture.isEmpty()) {
+			try {
+				Path uploadPath = Paths.get(UPLOAD_DIR);
+				if (!Files.exists(uploadPath)) {
+					Files.createDirectories(uploadPath);
+				}
+
+				String fileName = picture.getOriginalFilename();
+
+				// Create unique filename with pokemon details
+				String extension = fileName.contains(".") ? fileName.substring(fileName.lastIndexOf('.')) : "";
+				String finalFileName = pokemonDto.getName() + "_" + pokemonDto.getCombat_power() + extension;
+
+				File destinationFile = new File(UPLOAD_DIR + finalFileName);
+
+				// Upload the new file
+				picture.transferTo(destinationFile);
+
+				// Update the picture path in database
+				updatedPokemon.setPicturePath(finalFileName);
+				updatedPokemon = updatePokemon(updatedPokemon, id);
+
+				// Delete the old picture file if it exists
+				if (oldPicturePath != null && !oldPicturePath.isEmpty()) {
+					File oldFile = new File(UPLOAD_DIR + oldPicturePath);
+					if (oldFile.exists()) {
+						if (oldFile.delete()) {
+							System.out.println("Old image file deleted successfully: " + oldPicturePath);
+						} else {
+							System.err.println("Failed to delete old image file: " + oldPicturePath);
+						}
+					}
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				redirectAttributes.addFlashAttribute("message", "Could not upload file.");
+				return updatedPokemon;
+			}
+		}
+
+		return updatedPokemon;
 	}
-	
+
 	@Autowired
 	public PokemonServiceImpl(PokemonRepository pokemonRepository) {
 		this.pokemonRepository = pokemonRepository;
@@ -126,7 +126,10 @@ public class PokemonServiceImpl implements PokemonService {
 		Pageable pageable = PageRequest.of(pageNo, pageSize);
 		Page<Pokemon> pokemons = pokemonRepository.findAllByOrderByIdDesc(pageable);
 		List<Pokemon> listOfPokemon = pokemons.getContent();
-		List<PokemonDto> content = listOfPokemon.stream().map(p -> mapToDto(p)).collect(Collectors.toList());
+		List<PokemonDto> content = listOfPokemon.stream()
+									.filter(pokemon -> "active".equals(pokemon.getStatus()))
+									.map(p -> mapToDto(p))
+									.collect(Collectors.toList());
 
 		PokemonResponse pokemonResponse = new PokemonResponse();
 		pokemonResponse.setContent(content);
@@ -146,6 +149,7 @@ public class PokemonServiceImpl implements PokemonService {
 		pokemonDto.setType(pokemon.getType());
 		pokemonDto.setCombat_power(pokemon.getCombat_power());
 		pokemonDto.setPicturePath(pokemon.getPicturePath());
+		pokemonDto.setAuditDetails(pokemon.getAuditDetails());
 		return pokemonDto;
 	}
 
@@ -155,6 +159,7 @@ public class PokemonServiceImpl implements PokemonService {
 		pokemon.setType(pokemonDto.getType());
 		pokemon.setCombat_power(pokemonDto.getCombat_power());
 		pokemon.setPicturePath(pokemonDto.getPicturePath());
+		pokemon.setAuditDetails(pokemonDto.getAuditDetails());
 		return pokemon;
 	}
 
@@ -166,30 +171,78 @@ public class PokemonServiceImpl implements PokemonService {
 	}
 
 	@Override
-	public void deletePokemonId(int id) {
-		Pokemon pokemon = pokemonRepository.findById(id)
-				.orElseThrow(() -> new PokemonNotFoundException("Pokemon could not be found"));
-		
-		// Delete the associated image file if it exists
-		if (pokemon.getPicturePath() != null && !pokemon.getPicturePath().isEmpty()) {
-			try {
-				File imageFile = new File(UPLOAD_DIR + pokemon.getPicturePath());
-				if (imageFile.exists()) {
-					imageFile.delete();
-				}
-			} catch (Exception e) {
-				// Log the error but continue with deletion
-				System.err.println("Error deleting image file: " + e.getMessage());
-			}
-		}
-		
-		pokemonRepository.delete(pokemon);
-	}
+public void deletePokemonId(int id) {
+    Pokemon pokemon = pokemonRepository.findById(id)
+            .orElseThrow(() -> new PokemonNotFoundException("Pokemon could not be found"));
+
+    // Implement soft delete by changing status
+    pokemon.setStatus("inactive");
+
+    // Handle the associated image file if it exists
+    if (pokemon.getPicturePath() != null && !pokemon.getPicturePath().isEmpty()) {
+        try {
+            // Create delete directory if it doesn't exist
+            Path deleteDir = Paths.get(UPLOAD_DIR, "deleted");
+            if (!Files.exists(deleteDir)) {
+                Files.createDirectories(deleteDir);
+            }
+            
+            // Original file
+            Path originalPath = Paths.get(UPLOAD_DIR, pokemon.getPicturePath());
+            File originalFile = originalPath.toFile();
+
+            if (originalFile.exists()) {
+                // Create path for file in the deleted folder
+                Path destPath = Paths.get(UPLOAD_DIR, "deleted", pokemon.getPicturePath());
+                File destFile = destPath.toFile();
+                
+                // If a file with the same name already exists in the deleted folder,
+                // add a timestamp to make it unique
+                if (destFile.exists()) {
+                    String fileName = pokemon.getPicturePath();
+                    String extension = fileName.contains(".") ? 
+                        fileName.substring(fileName.lastIndexOf('.')) : "";
+                    String nameWithoutExt = fileName.contains(".") ? 
+                        fileName.substring(0, fileName.lastIndexOf('.')) : fileName;
+                    
+                    // Add timestamp to create unique name
+                    String uniqueName = nameWithoutExt + "_" + System.currentTimeMillis() + extension;
+                    destPath = Paths.get(UPLOAD_DIR, "deleted", uniqueName);
+                    destFile = destPath.toFile();
+                }
+                
+                // Move file to deleted folder
+                boolean moved = originalFile.renameTo(destFile);
+                
+                if (moved) {
+                    System.out.println("File moved successfully to: " + destFile.getPath());
+                    // Update the path in the database to point to the new location
+                    pokemon.setPicturePath("deleted/" + destFile.getName());
+                } else {
+                    System.err.println("Failed to move file to deleted folder. Check permissions.");
+                }
+            } else {
+                System.out.println("Image file not found: " + originalPath);
+            }
+        } catch (Exception e) {
+            System.err.println("Error moving image file: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    // Save the updated Pokemon with inactive status and updated picture path
+    pokemonRepository.save(pokemon);
+    
+    // Log the soft delete operation
+    System.out.println("Pokemon ID " + id + " soft deleted (marked as inactive)");
+}
 
 	@Override
 	public List<PokemonDto> getAllPokemon() {
-		List<Pokemon> pokemons = pokemonRepository.findAll();
-		return pokemonRepository.findAll().stream().map(this::mapToDto).collect(Collectors.toList());
+		return pokemonRepository.findAll().stream()
+			.filter(pokemon -> "active".equals(pokemon.getStatus()))
+			.map(this::mapToDto)
+			.collect(Collectors.toList());
 	}
 
 	@Override
