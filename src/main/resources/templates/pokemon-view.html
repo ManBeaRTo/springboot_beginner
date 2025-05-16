@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,44 +12,53 @@
 
     <style>
         .picture-pop img {
-        transition: transform 0.3s ease-in-out;
-        max-height: 150px;
-        margin: 10px auto;
-        display: block;
-		}
-		
-		.picture-pop img:hover {
-			transform: scale(1.9); /* Make image slightly larger on hover */
-			filter: drop-shadow(0 0 8px rgba(0, 123, 255, 0.6)); /* Add a glow effect in Pokemon theme color */
-			z-index: 10; /* Ensure the image appears above other elements */
-		}
+            transition: transform 0.3s ease-in-out;
+            max-height: 150px;
+            margin: 10px auto;
+            display: block;
+        }
+
+        .picture-pop img:hover {
+            transform: scale(1.9);
+            /* Make image slightly larger on hover */
+            filter: drop-shadow(0 0 8px rgba(0, 123, 255, 0.6));
+            /* Add a glow effect in Pokemon theme color */
+            z-index: 10;
+            /* Ensure the image appears above other elements */
+        }
     </style>
 </head>
 
 <body>
-<main class="main d-flex align-items-center justify-content-center" style="min-height: 100vh;">
-    <div class="card p-4 mx-auto picture-pop">
-        <div class="card-header">
-            <h3 class="mb-0">Pokemon View</h3>
-        </div>
-        <div class="card-body">
-            <div class="pokemon-item mb-3 p-3 border ">
-                <div><strong>ID:</strong> <span th:text="${pokemon.id}"></span></div>
-                <div><strong>Name:</strong> <span th:text="${pokemon.name}"></span></div>
-                <div><strong>Type:</strong> <span th:text="${pokemon.type}"></span></div>
-                <div><strong>Combat Power:</strong> <span th:text="${pokemon.combat_power}"></span></div>
-                <div class="text-center mb-3">
-                    <img th:src="@{'/uploads/' + ${pokemon.picturePath}}" alt="Pokemon Image" class="img-fluid rounded" style="max-height: 200px;">
-                </div></div>
-                <div><strong>Description:</strong> <span th:text="${pokemon.description}"></span></div>
+    <main class="main d-flex align-items-center justify-content-center" style="min-height: 100vh;">
+        <div class="card p-4 mx-auto picture-pop " style="width: 30%;">
+            <div class="card-header text-center">
+                <h3 class="mb-0">Pokemon View</h3>
+            </div>
+            <div class="card-body" >
+                <div class="pokemon-item mb-3 p-3 border">
+                    <div class="text-center"><strong>ID:</strong> <span th:text="${pokemon.id}"></span></div>
+                    <div class="text-center"><strong>Name:</strong> <span th:text="${pokemon.name}"></span></div>
+                    <div class="text-center"><strong>Type:</strong> <span th:text="${pokemon.type}"></span></div>
+                    <div class="text-center"><strong>Combat Power:</strong> <span th:text="${pokemon.combat_power}"></span></div>
+                    <div class="text-center mb-3">
+                        <img th:src="@{'/uploads/' + ${pokemon.picturePath}}" alt="Pokemon Image"
+                            class="img-fluid rounded" style="max-height: 200px;">
+                    </div>
+                </div>
+                <p><strong>Description:</strong> <span
+                        th:text="${pokemon.description != null and pokemon.description != '' ? pokemon.description : '[CLASSIFIED]'}"></span>
+                </p>
 
                 <br>
                 <div class="item item-1 fs-6  btn btn-primary">
-                    <i class="fa-solid fa-hand-point-left me-2"></i><a th:href="@{/api/pokemon-table}" class="text-light">Go Back</a>
+                    <i class="fa-solid fa-hand-point-left me-2"></i><a th:href="@{/api/pokemon-table}"
+                        class="text-light">Go Back</a>
                 </div>
             </div>
         </div>
-    </div>
-</main>
+        </div>
+    </main>
 </body>
+
 </html>
