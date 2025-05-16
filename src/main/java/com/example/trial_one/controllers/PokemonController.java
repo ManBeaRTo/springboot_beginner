@@ -143,8 +143,9 @@ public class PokemonController {
             .limit(9)
             .collect(Collectors.toList());
         
+            List<PokemonDto> pokemonListAll = pokemonService.getAllPokemon();
         model.addAttribute("latestAdditions", latestAdditions);
-        model.addAttribute("pokemonList", pokemonDtoList);
+        model.addAttribute("pokemonList", pokemonListAll);
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", pokemonResponse.getTotalPages());
         model.addAttribute("totalItems", pokemonResponse.getTotalElements());

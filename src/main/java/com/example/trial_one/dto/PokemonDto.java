@@ -24,4 +24,5 @@ public class PokemonDto {
 	private String picturePath;
 	private AuditDetails auditDetails;
 	private String status;
+	private String description;
 }

@@ -54,17 +54,19 @@ public class PokemonServiceImpl implements PokemonService {
 				String extension = fileName.contains(".") ? fileName.substring(fileName.lastIndexOf('.')) : "";
 				String finalFileName = pokemonDto.getName() + "_" + pokemonDto.getCombat_power() + extension;
 
-				File destinationFile = new File(UPLOAD_DIR + finalFileName);
+				// Check if the new filename is the same as the old one
+				boolean sameFileName = oldPicturePath != null && oldPicturePath.equals(finalFileName);
+				File destinationFile;
 
-				// Upload the new file
-				picture.transferTo(destinationFile);
+				if (sameFileName) {
+					// Use a temporary filename to avoid conflicts
+					String tempFileName = finalFileName + ".temp";
+					destinationFile = new File(UPLOAD_DIR + tempFileName);
 
-				// Update the picture path in database
-				updatedPokemon.setPicturePath(finalFileName);
-				updatedPokemon = updatePokemon(updatedPokemon, id);
+					// Upload to temporary file
+					picture.transferTo(destinationFile);
 
-				// Delete the old picture file if it exists
-				if (oldPicturePath != null && !oldPicturePath.isEmpty()) {
+					// Delete the old file
 					File oldFile = new File(UPLOAD_DIR + oldPicturePath);
 					if (oldFile.exists()) {
 						if (oldFile.delete()) {
@@ -73,7 +75,39 @@ public class PokemonServiceImpl implements PokemonService {
 							System.err.println("Failed to delete old image file: " + oldPicturePath);
 						}
 					}
+
+					// Rename temp file to final filename
+					File finalFile = new File(UPLOAD_DIR + finalFileName);
+					if (destinationFile.renameTo(finalFile)) {
+						System.out.println("Renamed temp file to final filename: " + finalFileName);
+					} else {
+						System.err.println("Failed to rename temp file. Using temp filename instead.");
+						finalFileName = tempFileName; // Use the temp filename if rename fails
+					}
+				} else {
+					// Normal case - different filenames
+					destinationFile = new File(UPLOAD_DIR + finalFileName);
+
+					// Upload the new file
+					picture.transferTo(destinationFile);
+
+					// Delete the old picture file if it exists
+					if (oldPicturePath != null && !oldPicturePath.isEmpty()) {
+						File oldFile = new File(UPLOAD_DIR + oldPicturePath);
+						if (oldFile.exists()) {
+							if (oldFile.delete()) {
+								System.out.println("Old image file deleted successfully: " + oldPicturePath);
+							} else {
+								System.err.println("Failed to delete old image file: " + oldPicturePath);
+							}
+						}
+					}
 				}
+
+				// Update the picture path in database
+				updatedPokemon.setPicturePath(finalFileName);
+				updatedPokemon = updatePokemon(updatedPokemon, id);
+
 			} catch (Exception e) {
 				e.printStackTrace();
 				redirectAttributes.addFlashAttribute("message", "Could not upload file.");
@@ -104,6 +138,8 @@ public class PokemonServiceImpl implements PokemonService {
 		pokemonResponse.setName(newPokemon.getName());
 		pokemonResponse.setType(newPokemon.getType());
 		pokemonResponse.setPicturePath(newPokemon.getPicturePath());
+		pokemonResponse.setDescription(newPokemon.getDescription());
+
 		return pokemonResponse;
 	}
 
@@ -116,6 +152,7 @@ public class PokemonServiceImpl implements PokemonService {
 		pokemon.setType(pokemonDto.getType());
 		pokemon.setCombat_power(pokemonDto.getCombat_power());
 		pokemon.setPicturePath(pokemonDto.getPicturePath());
+		pokemon.setDescription(pokemonDto.getDescription());
 
 		Pokemon updatedPokemon = pokemonRepository.save(pokemon);
 		return mapToDto(updatedPokemon);
@@ -150,6 +187,7 @@ public class PokemonServiceImpl implements PokemonService {
 		pokemonDto.setCombat_power(pokemon.getCombat_power());
 		pokemonDto.setPicturePath(pokemon.getPicturePath());
 		pokemonDto.setAuditDetails(pokemon.getAuditDetails());
+		pokemonDto.setDescription(pokemon.getDescription());
 		return pokemonDto;
 	}
 
@@ -160,6 +198,7 @@ public class PokemonServiceImpl implements PokemonService {
 		pokemon.setCombat_power(pokemonDto.getCombat_power());
 		pokemon.setPicturePath(pokemonDto.getPicturePath());
 		pokemon.setAuditDetails(pokemonDto.getAuditDetails());
+		pokemon.setDescription(pokemonDto.getDescription());
 		return pokemon;
 	}
 

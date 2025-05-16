@@ -8,4 +8,6 @@ public class NewPokemonDto {
 	private String type;
 	private int combat_power;
 	private String picturePath;
+	private String status;
+	private String description;
 }

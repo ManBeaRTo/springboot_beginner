@@ -29,6 +29,7 @@ public class NewPokemonServiceImpl implements NewPokemonService {
 		pokemon.setType(pokemonDto.getType());
 		pokemon.setCombat_power(pokemonDto.getCombat_power());
 		pokemon.setPicturePath(pokemonDto.getPicturePath());
+		pokemon.setDescription(pokemonDto.getDescription());
 		pokemon.setStatus("active");
 
 		pokemonRepository.save(pokemon);

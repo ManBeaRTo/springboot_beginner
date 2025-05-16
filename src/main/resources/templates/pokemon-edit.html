@@ -28,6 +28,10 @@
                     <input type="number" th:field="*{combat_power}" class="form-control" min="0" required>
                 </div>
                 <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <input type="text" th:field="*{description}" class="form-control" required>
+                </div>
+                <div class="mb-3">
                     <label class="form-label" for="picture">Picture</label>
                     <input type="file" class="form-control" id="picture" name="picture">
                 </div>

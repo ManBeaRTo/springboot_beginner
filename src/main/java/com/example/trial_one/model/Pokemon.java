@@ -35,7 +35,7 @@ public class Pokemon
 	private String type;
 	private int combat_power;
 	private String picturePath;
-	private String remark;
+	private String description;
 	private String status;
 	
 	@OneToMany(mappedBy = "pokemon", cascade = CascadeType.ALL, orphanRemoval = true)
