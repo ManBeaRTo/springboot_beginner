@@ -108,7 +108,7 @@
 							<tr class="text-center">
 								<th class="text-center">#</th>
 								<th class="text-center">Name</th>
-								<th class="text-center">Type <i class="fa-solid fa-fire-flame-curved"></i></th>
+								<th class="text-center">Type</th>
 								<th class="text-center">Combat Power</th>
 								<th class="text-center">Operations</th>
 							</tr>
@@ -120,9 +120,17 @@
 								<td class="text-center" th:text="${pokemon.type}"></td>
 								<td class="text-center" th:text="${pokemon.combat_power}"></td>
 								<td class="text-center">
-									<a th:href="@{/api/pokemon-view/{id}(id=${pokemon.id})}" class="btn btn-primary">
-										<i class="fa-solid fa-eye"></i>
-									</a>
+									<button type="button" class="btn btn-primary view-pokemon-btn" 
+											data-bs-toggle="modal" data-bs-target="#pokemonModal"
+											th:data-id="${pokemon.id}" 
+											th:data-name="${pokemon.name}" 
+											th:data-type="${pokemon.type}" 
+											th:data-cp="${pokemon.combat_power}"
+											th:data-description="${pokemon.description}"
+											th:data-image="${pokemon.picturePath != null ? '/uploads/' + pokemon.picturePath : '/pokeball.png'}"
+											th:data-edit-url="@{/api/pokemon/{id}/edit(id=${pokemon.id})}">
+									<i class="fa-solid fa-eye"></i>
+									</button>
 									<a th:href="@{/api/pokemon/{id}/edit(id=${pokemon.id})}" class="btn btn-primary">
 										<i class="fa-solid fa-pen-to-square"></i>
 									</a>
@@ -216,6 +224,43 @@
 			</div>
 		</div>
 
+	<!-- Pokemon View Modal -->
+	<div class="modal fade" id="pokemonModal" tabindex="-1" aria-labelledby="pokemonModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content border-primary border-3">
+			<div class="modal-header bg-primary text-white">
+			<h5 class="modal-title text-warning fw-bold" id="pokemonModalLabel">Pokemon Details</h5>
+			<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+			<div class="d-flex justify-content-center align-items-center">
+				<img src="/pokemon_logo.png" alt="Pokemon Logo" width="50%" class="mb-3">
+			</div>
+			<div class="card p-4 mx-auto picture-pop border-3 border-primary">
+				<div class="card-body">
+				<div class="pokemon-item mb-3 p-3">
+					<div class="text-center"><strong>ID:</strong> <span id="modal-pokemon-id"></span></div>
+					<div class="text-center"><strong>Name:</strong> <span id="modal-pokemon-name"></span></div>
+					<div class="text-center"><strong>Type:</strong> <span id="modal-pokemon-type"></span></div>
+					<div class="text-center"><strong>Combat Power:</strong> <span id="modal-pokemon-cp"></span></div>
+					<div class="text-center mb-3">
+					<img id="modal-pokemon-image" src="" alt="Pokemon Image" 
+						class="img-fluid rounded" style="max-height: 200px;">
+					</div>
+				</div>
+				<p><strong>Description:</strong> <span id="modal-pokemon-description"></span></p>
+				</div>
+			</div>
+			</div>
+			<div class="modal-footer">
+			<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+				<i class="fa-solid fa-xmark me-1"></i> Close
+			</button>
+			</div>
+		</div>
+		</div>
+	</div>
+
 	</main>
 
 
@@ -227,5 +272,36 @@
 <script src="https://cdn.datatables.net/2.3.0/js/dataTables.js"></script>
 <script src="https://cdn.datatables.net/2.3.0/js/dataTables.bootstrap5.js"></script>
 <script>new DataTable('#pokemontableid');</script>
+<script>
+	document.addEventListener('DOMContentLoaded', function() {
+  // Use event delegation for dynamically created buttons
+  document.getElementById('pokemontableid').addEventListener('click', function(event) {
+      const button = event.target.closest('.view-pokemon-btn');
+    if (button) {
+      const id = button.getAttribute('data-id');
+      const name = button.getAttribute('data-name');
+      const type = button.getAttribute('data-type');
+      const cp = button.getAttribute('data-cp');
+      const image = button.getAttribute('data-image');
+      const description = button.getAttribute('data-description');
+      const editUrl = button.getAttribute('data-edit-url');
+      
+            document.getElementById('modal-pokemon-id').textContent = id;
+      document.getElementById('modal-pokemon-name').textContent = name;
+      document.getElementById('modal-pokemon-type').textContent = type;
+      document.getElementById('modal-pokemon-cp').textContent = cp;
+      document.getElementById('modal-pokemon-image').src = image;
+            if (!description || description === '[CLASSIFIED]') {
+        document.getElementById('modal-pokemon-description').innerHTML =
+          '<strong style="color: red;">[CLASSIFIED]</strong>';
+      } else {
+        document.getElementById('modal-pokemon-description').textContent = description;
+      }
+      document.getElementById('modal-edit-link').href = editUrl;
+      
+    }
+  });
+});
+  </script>
 
 </html>

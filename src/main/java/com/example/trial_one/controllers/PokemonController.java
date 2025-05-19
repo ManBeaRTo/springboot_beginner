@@ -72,14 +72,15 @@ public class PokemonController {
     @PostMapping("pokemon/{id}/edit")
     public String updatePokemon(@PathVariable int id, @RequestParam("picture") MultipartFile picture,
             @ModelAttribute("pokemon") PokemonDto pokemonDto, RedirectAttributes redirectAttributes) {
-        
-        PokemonDto updatedPokemon = pokemonService.updatePokemonWithPicture(id, pokemonDto, picture, redirectAttributes);
-        
+
+        PokemonDto updatedPokemon = pokemonService.updatePokemonWithPicture(id, pokemonDto, picture,
+                redirectAttributes);
+
         if (updatedPokemon == null) {
             // If the service returns null, there was an error with the file upload
             return "redirect:/add-pokemon-form";
         }
-        
+
         return "redirect:/api/pokemon-table";
     }
 
@@ -108,42 +109,42 @@ public class PokemonController {
             @RequestParam(defaultValue = "8") int size) {
         Pageable pageable = PageRequest.of(page, size);
         PokemonResponse pokemonResponse = pokemonService.getAllPokemon(page, size);
-        
+
         List<PokemonDto> pokemonDtoList = pokemonResponse.getContent();
 
         int totalPokemons = (int) pokemonResponse.getTotalElements();
-        
+
         // Get strongest Pokemon info
         String strongestPokemonName = pokemonService.getAllPokemon().stream()
-            .max((p1, p2) -> Integer.compare(p1.getCombat_power(), p2.getCombat_power()))
-            .map(PokemonDto::getName)
-            .orElse("N/A");
-            
+                .max((p1, p2) -> Integer.compare(p1.getCombat_power(), p2.getCombat_power()))
+                .map(PokemonDto::getName)
+                .orElse("N/A");
+
         String strongestPokemonPicture = pokemonService.getAllPokemon().stream()
-            .max((p1, p2) -> Integer.compare(p1.getCombat_power(), p2.getCombat_power()))
-            .map(PokemonDto::getPicturePath)
-            .orElse("default-image.jpg");
-        
+                .max((p1, p2) -> Integer.compare(p1.getCombat_power(), p2.getCombat_power()))
+                .map(PokemonDto::getPicturePath)
+                .orElse("default-image.jpg");
+
         // Get weakest Pokemon info
         String weakestPokemonName = pokemonService.getAllPokemon().stream()
-            .min((p1, p2) -> Integer.compare(p1.getCombat_power(), p2.getCombat_power()))
-            .map(PokemonDto::getName)
-            .orElse("N/A");
-        
+                .min((p1, p2) -> Integer.compare(p1.getCombat_power(), p2.getCombat_power()))
+                .map(PokemonDto::getName)
+                .orElse("N/A");
+
         String weakestPokemonPicture = pokemonService.getAllPokemon().stream()
-            .min((p1, p2) -> Integer.compare(p1.getCombat_power(), p2.getCombat_power()))
-            .map(PokemonDto::getPicturePath)
-            .orElse("default-image.jpg");
-        
+                .min((p1, p2) -> Integer.compare(p1.getCombat_power(), p2.getCombat_power()))
+                .map(PokemonDto::getPicturePath)
+                .orElse("default-image.jpg");
+
         // Get the latest 9 Pokemon additions sorted by creation time
         List<PokemonDto> latestAdditions = pokemonService.getAllPokemon().stream()
-            .filter(p -> p.getAuditDetails() != null && p.getAuditDetails().getCreationTime() != null)
-            .sorted((p1, p2) -> p2.getAuditDetails().getCreationTime()
-                    .compareTo(p1.getAuditDetails().getCreationTime()))
-            .limit(9)
-            .collect(Collectors.toList());
-        
-            List<PokemonDto> pokemonListAll = pokemonService.getAllPokemon();
+                .filter(p -> p.getAuditDetails() != null && p.getAuditDetails().getCreationTime() != null)
+                .sorted((p1, p2) -> p2.getAuditDetails().getCreationTime()
+                        .compareTo(p1.getAuditDetails().getCreationTime()))
+                .limit(9)
+                .collect(Collectors.toList());
+
+        List<PokemonDto> pokemonListAll = pokemonService.getAllPokemon();
         model.addAttribute("latestAdditions", latestAdditions);
         model.addAttribute("pokemonList", pokemonListAll);
         model.addAttribute("currentPage", page);
@@ -159,10 +160,5 @@ public class PokemonController {
         return "pokemon-table";
     }
 
-    @GetMapping("pokemon-view/{id}")
-    public String showView(@PathVariable int id, Model model) {
-        PokemonDto pokemon = pokemonService.getPokemonById(id);
-        model.addAttribute("pokemon", pokemon);
-        return "pokemon-view";
-    }
+    
 }
