@@ -2,6 +2,7 @@ package com.example.trial_one.service.impl;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
@@ -23,12 +24,13 @@ import com.example.trial_one.model.Pokemon;
 import com.example.trial_one.repository.PokemonRepository;
 import com.example.trial_one.service.PokemonService;
 
-import java.nio.file.Path;
-
 @Service
 public class PokemonServiceImpl implements PokemonService {
 	private PokemonRepository pokemonRepository;
 	private static final String UPLOAD_DIR = "/home/rambo/Workspace/spring/trial_one/uploads/";
+
+	@Autowired
+	private PokemonEmbeddingServiceImpl pokemonEmbeddingService;
 
 	@Override
 	public PokemonDto updatePokemonWithPicture(int id, PokemonDto pokemonDto, MultipartFile picture,
@@ -137,6 +139,9 @@ public class PokemonServiceImpl implements PokemonService {
 
 		Pokemon newPokemon = pokemonRepository.save(pokemon);
 
+		// Update vector store
+		pokemonEmbeddingService.addOrUpdatePokemonInVectorStore(newPokemon);
+
 		PokemonDto pokemonResponse = new PokemonDto();
 		pokemonResponse.setId(newPokemon.getId());
 		pokemonResponse.setName(newPokemon.getName());
@@ -159,6 +164,10 @@ public class PokemonServiceImpl implements PokemonService {
 		pokemon.setDescription(pokemonDto.getDescription());
 
 		Pokemon updatedPokemon = pokemonRepository.save(pokemon);
+
+		// Update vector store
+		pokemonEmbeddingService.addOrUpdatePokemonInVectorStore(updatedPokemon);
+
 		return mapToDto(updatedPokemon);
 	}
 
@@ -276,6 +285,9 @@ public class PokemonServiceImpl implements PokemonService {
 		// Save the updated Pokemon with inactive status and updated picture path
 		pokemonRepository.save(pokemon);
 
+		 // Update vector store (remove from embeddings since it's inactive)
+		pokemonEmbeddingService.deletePokemonFromVectorStore(id);
+
 		// Log the soft delete operation
 		System.out.println("Pokemon ID " + id + " soft deleted (marked as inactive)");
 	}
@@ -296,4 +308,11 @@ public class PokemonServiceImpl implements PokemonService {
 		result.put("all", allPokemon.size());
 		return result;
 	}
+
+	@Override
+	public Long getAllInactivePokemon() {
+		return pokemonRepository.findAll().stream()
+				.filter(pokemon -> "inactive".equals(pokemon.getStatus()))
+				.count();
+	}	
 }

@@ -113,6 +113,10 @@ public class PokemonController {
         List<PokemonDto> pokemonDtoList = pokemonResponse.getContent();
 
         int totalPokemons = (int) pokemonResponse.getTotalElements();
+        
+        // Subtract inactive pokemon from total count
+        long inactiveCount = pokemonService.getAllInactivePokemon();
+        totalPokemons -= inactiveCount;
 
         // Get strongest Pokemon info
         String strongestPokemonName = pokemonService.getAllPokemon().stream()

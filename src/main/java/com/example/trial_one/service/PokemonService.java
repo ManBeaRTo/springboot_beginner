@@ -21,4 +21,5 @@ public interface PokemonService
 	
 	List<PokemonDto> getAllPokemon();
 	Map<String, Object> getPokemonData();
+	Long getAllInactivePokemon();
 }
