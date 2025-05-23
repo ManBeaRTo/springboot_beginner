@@ -60,7 +60,7 @@
             <div class="row g-4" th:if="${resultCount > 0}">
                 <div class="col-md-4" th:each="pokemon : ${pokemonResults}">
                     <div class="card shadow h-100">
-                        <div class="card-header bg-primary text-white">
+                        <div class="card-header bg-primary text-white bg-gradient">
                             <h4 class="card-title mb-0" th:text="${pokemon.name}">Pokémon Name</h4>
                         </div>
                         <div class="card-body">
