@@ -3,6 +3,7 @@ package com.example.trial_one.service.impl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.ai.document.Document;
@@ -32,18 +33,55 @@ public class PokemonEmbeddingServiceImpl implements PokemonEmbeddingService {
 
     @PostConstruct
     public void initializeVectorStore() {
-        List<Pokemon> allActivePokemon = pokemonRepository.findAll().stream()
-                .filter(pokemon -> "active".equals(pokemon.getStatus()))
-                .collect(Collectors.toList());
+        try {
+            // Adding a try-catch block to deal with any potential issues
+            try {
+                // Use a non-empty query that's generic enough to match all documents
+                SearchRequest allDocsRequest = SearchRequest.query("pokemon").withTopK(1000);
+                List<Document> existingDocs = vectorStore.similaritySearch(allDocsRequest);
+                
+                if (!existingDocs.isEmpty()) {
+                    List<String> docIds = existingDocs.stream()
+                        .map(Document::getId)
+                        .collect(Collectors.toList());
+                    
+                    System.out.println("Found " + docIds.size() + " documents to delete");
+                    
+                    // Delete in batches to avoid overwhelming the database
+                    for (String docId : docIds) {
+                        try {
+                            vectorStore.delete(List.of(docId));
+                        } catch (Exception e) {
+                            System.out.println("Error deleting document with ID " + docId + ": " + e.getMessage());
+                        }
+                    }
+                    
+                    System.out.println("Cleared existing vector store: " + existingDocs.size() + " documents");
+                }
+            } catch (Exception e) {
+                System.out.println("Error finding documents for deletion: " + e.getMessage());
+                // Continue with adding new documents anyway
+            }
+            
+            // Continue with adding new documents...
+            List<Pokemon> allActivePokemon = pokemonRepository.findAll().stream()
+                    .filter(pokemon -> "active".equals(pokemon.getStatus()))
+                    .collect(Collectors.toList());
+                    
+            System.out.println("Adding " + allActivePokemon.size() + " Pokemon to vector store");
+            
+            List<Document> documents = new ArrayList<>();
+            for (Pokemon pokemon : allActivePokemon) {
+                documents.add(createDocument(pokemon));
+            }
 
-        List<Document> documents = new ArrayList<>();
-        for (Pokemon pokemon : allActivePokemon) {
-            documents.add(createDocument(pokemon));
-        }
-
-        if (!documents.isEmpty()) {
-            vectorStore.add(documents);
-            System.out.println("Initialized vector store with " + documents.size() + " Pokémon documents");
+            if (!documents.isEmpty()) {
+                vectorStore.add(documents);
+                System.out.println("Initialized vector store with " + documents.size() + " Pokémon documents");
+            }
+        } catch (Exception e) {
+            System.out.println("Error initializing vector store: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -55,8 +93,12 @@ public class PokemonEmbeddingServiceImpl implements PokemonEmbeddingService {
                 pokemon.getType(),
                 pokemon.getDescription() != null ? pokemon.getDescription() : "");
 
+        // Generate a stable UUID from Pokemon ID
+        String documentId = UUID.nameUUIDFromBytes(("pokemon-" + pokemon.getId()).getBytes()).toString();
+        
         // Add metadata for retrieval
         return new Document(
+                documentId, // Use the UUID string as document ID
                 content,
                 Map.of("pokemon_id", String.valueOf(pokemon.getId()),
                        "name", pokemon.getName(),
@@ -75,7 +117,13 @@ public class PokemonEmbeddingServiceImpl implements PokemonEmbeddingService {
         Document document = createDocument(pokemon);
         
         // Remove any existing document for this Pokemon
-        vectorStore.delete(List.of(String.valueOf(pokemon.getId())));
+        String documentId = UUID.nameUUIDFromBytes(("pokemon-" + pokemon.getId()).getBytes()).toString();
+        try {
+            vectorStore.delete(List.of(documentId));
+        } catch (Exception e) {
+            // Just log the error and continue - the document might not exist yet
+            System.out.println("No existing document found for ID: " + pokemon.getId());
+        }
         
         // Add the updated document
         vectorStore.add(List.of(document));
@@ -84,9 +132,16 @@ public class PokemonEmbeddingServiceImpl implements PokemonEmbeddingService {
     }
 
     public void deletePokemonFromVectorStore(int pokemonId) {
-        // Delete document from vector store
-        vectorStore.delete(List.of(String.valueOf(pokemonId)));
-        System.out.println("Deleted Pokemon from vector store: ID " + pokemonId);
+        // Generate same UUID as when creating the document
+        String documentId = UUID.nameUUIDFromBytes(("pokemon-" + pokemonId).getBytes()).toString();
+        
+        try {
+            // Delete document from vector store
+            vectorStore.delete(List.of(documentId));
+            System.out.println("Deleted Pokemon from vector store: ID " + pokemonId);
+        } catch (Exception e) {
+            System.err.println("Error deleting from vector store: " + e.getMessage());
+        }
     }
     
     public List<Map<String, Object>> searchPokemon(String query, int topK) {
